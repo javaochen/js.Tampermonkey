@@ -1,13 +1,18 @@
 // ==UserScript==
-// @name         强制当前页打开（icourse）
+// @name         站内链接强制当前页打开
 // @namespace    http://tampermonkey.net/
-// @version      5.1
-// @description  让 icourse 的链接在当前标签页打开，不再弹新页
+// @version      6.0
+// @description  让 icourse 与搜索引擎结果页的链接在当前标签页打开，不再弹新页
 // @homepageURL  https://github.com/javaochen/js.Tampermonkey
 // @supportURL   https://github.com/javaochen/js.Tampermonkey/issues
-// @downloadURL  https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/close_new_tab.js
-// @updateURL    https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/close_new_tab.js
+// @downloadURL  https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/same_tab.user.js
+// @updateURL    https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/same_tab.user.js
 // @match        *://icourse.fudan.edu.cn/*
+// @match        *://www.baidu.com/*
+// @match        *://www.google.com/*
+// @match        *://www.google.com.hk/*
+// @match        *://cn.bing.com/*
+// @match        *://www.bing.com/*
 // @exclude      *://icourse.fudan.edu.cn/login*
 // @exclude      *://icourse.fudan.edu.cn/cas/*
 // @exclude      *://icourse.fudan.edu.cn/oauth*
@@ -22,7 +27,7 @@
 (function () {
   'use strict';
 
-  const STORE_KEY = 'icourse_sameTab';
+  const STORE_KEY = 'sameTabEnabled';
   // 课程列表在 portal iframe 里，会话值要能跨 frame 共享；多 frame 时菜单只注册一次
   const IN_FRAME = window.top !== window.self;
   let enabled = GM_getValue(STORE_KEY, true);
@@ -32,12 +37,20 @@
   const isNewTarget = target => /^(?:_blank|_new)$/i.test(String(target || ''));
   const isExternal = el => el.getAttribute('rel') === 'external' || el.hasAttribute('download');
 
-  // 登录、鉴权、下载类链接一律不动
+  // 搜索引擎结果页：结果链接常是 JS 触发的新标签，且返回时会丢搜索词，
+  // 因此这里同样只把新标签改成当前页，不额外接管点击。
+  const isSearchEngine = () => /(^|\.)(baidu|google)\.(com|com\.hk)$/.test(location.hostname)
+    || /(^|\.)bing\.com$/.test(location.hostname);
+  const SITE_LABEL = isSearchEngine() ? '搜索结果' : 'icourse 链接';
+
+  // 登录、鉴权、下载类链接一律不动。搜索引擎结果页不放行这些关键字：
+  // 搜索结果本身就可能带 login/download 字样，按关键字跳过会漏拦。
   const SKIP = ['login', 'cas', 'oauth', 'callback', 'captcha', 'download', 'export'];
   const isSkipUrl = (href) => {
     if (!href) return true;
     const u = href.toLowerCase();
     if (/^(mailto:|tel:|blob:|data:|javascript:)/.test(u) || u.startsWith('#')) return true;
+    if (isSearchEngine()) return false;
     return SKIP.some(k => u.includes(k));
   };
 
@@ -49,8 +62,9 @@
     if (wantsNewTab && url && !isSkipUrl(url)) {
       let abs;
       try { abs = new URL(url, pageWin.location.href); } catch { abs = null; }
-      // 只接管本站页面；跨域链接仍交给浏览器开新标签
-      if (abs && abs.origin === pageWin.location.origin) {
+      // 搜索引擎的结果本身就是跨域外链，因此这边不再限制同源
+      const allowCrossOrigin = isSearchEngine();
+      if (abs && (allowCrossOrigin || abs.origin === pageWin.location.origin)) {
         // iframe 里改自己的 location 只会重载子页面，必须让整个顶层窗口导航
         const targetWin = IN_FRAME ? pageWin.top : pageWin;
         try { targetWin.location.assign(abs.href); } catch { pageWin.location.assign(abs.href); }
@@ -148,7 +162,7 @@
   function refreshMenu() {
     if (cmd) GM_unregisterMenuCommand(cmd);
     if (IN_FRAME) return;
-    cmd = GM_registerMenuCommand(`icourse当前页打开：${enabled ? '开' : '关'}`, () => {
+    cmd = GM_registerMenuCommand(`${SITE_LABEL}当前页打开：${enabled ? '开' : '关'}`, () => {
       enabled = !enabled;
       GM_setValue(STORE_KEY, enabled);
       if (enabled) start();
@@ -163,10 +177,10 @@
   if (!IN_FRAME) refreshMenu();
 
   function toast(msg) {
-    let el = document.getElementById('icourse-toast');
+    let el = document.getElementById('same-tab-toast');
     if (!el) {
       el = document.createElement('div');
-      el.id = 'icourse-toast';
+      el.id = 'same-tab-toast';
       el.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:99999;background:#1a73e8;color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s';
       document.body?.appendChild(el);
     }
