@@ -7,6 +7,8 @@
 | 网页悬浮目录 | [安装](https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/toc.user.js) | 4.3.0 | 所有网页 |
 | AI Switcher | [安装](https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/ai-switcher.user.js) | 1.4.3 | ChatGPT、Claude、Gemini、DeepSeek、元宝、豆包、Kimi、千问、Qwen、ChatGLM、Grok、讯飞星火、Copilot、秘塔 |
 | 最新问题→标签页标题 | [安装](https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/tab-title.user.js) | 1.1.0 | 元宝 `chatMode=temp` 对话页 |
+| icourse 当前页打开 | [安装](https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/close_new_tab.js) | 5.1 | icourse 智慧教学资源平台 |
+| icourse 自动确认规范提示 | [安装](https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/icourse_cleaner.js) | 1.0 | icourse 智慧教学资源平台 |
 
 ## 功能速览
 
@@ -15,6 +17,10 @@
 **AI Switcher**：在 AI 聊天页面显示一条可拖动、可排序的 AI 快捷图标栏。单击切换、Ctrl/Cmd+单击或中键新标签打开。快捷键：`Alt+\`` 收起/展开，`Alt+1~9` 切换，`Alt+[` / `Alt+]` 前后切换。已兼容 Trusted Types 与严格 CSP 站点。
 
 **最新问题→标签页标题**：把当前会话里最后一条用户提问同步到标签页标题，方便在多标签间辨认。
+
+**icourse 当前页打开**：icourse 课程列表在 `portal` 同源 iframe 里，点课程会 `window.open(url, "_blank")` 开新标签。脚本在页面主世界劫持 `window.open`，同源链接改为当前页跳转，跨域链接和登录/下载仍开新标签。因为要注入 iframe，**脚本不能加 `@noframes`**。
+
+**icourse 自动确认规范提示**：每节课开始前会弹「关于平台资源使用的规范提示！」，需要勾选「我已阅读」再点「确认」。脚本检测到这个弹窗时自动勾选并确认。只匹配这一种弹窗，签到、互动答题、退出确认等其它弹窗不会被动。
 
 ## 从旧版迁移
 
@@ -31,6 +37,7 @@
 - 标题脚本目前只适配元宝的 `chatMode=temp` 页面，且依赖站点的用户消息选择器；站点改版后需要更新选择器。
 - 标题脚本使用 `@include` 而不是 `@match` 匹配 `chatMode=temp`，因为 Chrome 风格的 match 模式不匹配查询串。
 - `raw` 主分支链接意味着每次推送都会立即对所有用户生效。
+- icourse 相关脚本的问题记录、复现步骤与待验证项见 [`ICOURSE_ISSUES.md`](ICOURSE_ISSUES.md)。其中 VSCode 内置浏览器无法启动播放器属于环境限制，请用真实浏览器验收。
 
 ## 接入新脚本（外部生成后整理）
 
