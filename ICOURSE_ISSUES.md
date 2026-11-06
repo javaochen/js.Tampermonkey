@@ -1,6 +1,6 @@
 # icourse 脚本已知问题
 
-记录 `close_new_tab.js` 与 `icourse_cleaner.js` 中已确认存在的问题、证据与待验证的修复方向。
+记录 `same_tab.user.js` 与 `icourse_cleaner.js` 中已确认存在的问题、证据与待验证的修复方向。
 
 ---
 
@@ -69,9 +69,9 @@
 
 ---
 
-## 问题 3：`close_new_tab.js` 的 iframe 依赖
+## 问题 3：`same_tab.user.js` 的 iframe 依赖
 
-**影响面**：`close_new_tab.js`。
+**影响面**：`same_tab.user.js`。
 
 **背景**
 

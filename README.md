@@ -7,7 +7,7 @@
 | 网页悬浮目录 | [安装](https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/toc.user.js) | 4.3.0 | 所有网页 |
 | AI Switcher | [安装](https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/ai-switcher.user.js) | 1.4.3 | ChatGPT、Claude、Gemini、DeepSeek、元宝、豆包、Kimi、千问、Qwen、ChatGLM、Grok、讯飞星火、Copilot、秘塔 |
 | 最新问题→标签页标题 | [安装](https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/tab-title.user.js) | 1.1.0 | 元宝 `chatMode=temp` 对话页 |
-| icourse 当前页打开 | [安装](https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/close_new_tab.js) | 5.1 | icourse 智慧教学资源平台 |
+| 站内链接强制当前页打开 | [安装](https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/same_tab.user.js) | 6.0 | icourse 智慧教学资源平台、百度、Google、必应 |
 | icourse 自动确认规范提示 | [安装](https://raw.githubusercontent.com/javaochen/js.Tampermonkey/main/icourse_cleaner.js) | 1.0 | icourse 智慧教学资源平台 |
 
 ## 功能速览
@@ -18,7 +18,12 @@
 
 **最新问题→标签页标题**：把当前会话里最后一条用户提问同步到标签页标题，方便在多标签间辨认。
 
-**icourse 当前页打开**：icourse 课程列表在 `portal` 同源 iframe 里，点课程会 `window.open(url, "_blank")` 开新标签。脚本在页面主世界劫持 `window.open`，同源链接改为当前页跳转，跨域链接和登录/下载仍开新标签。因为要注入 iframe，**脚本不能加 `@noframes`**。
+**站内链接强制当前页打开**：让链接在点击后留在当前标签页，而不是弹新页。分两类站点：
+
+- **icourse**：课程列表在 `portal` 同源 iframe 里，点课程会 `window.open(url, "_blank")`。脚本在页面主世界劫持 `window.open`，同源链接改为当前页跳转，登录/下载链接仍开新标签。因为要注入 iframe，**脚本不能加 `@noframes`**。
+- **百度 / Google / 必应**：搜索结果普遍是 `<a target="_blank">`，脚本在 DOM 层面移除 `target`。这类站点不限制同源（结果本身就是外链），也不按 `login`/`download` 关键字跳过——搜索结果 URL 里经常带这些词。
+
+两类站点都只改「是否开新标签」，不接管当前页导航，所以浏览器后退仍能回到搜索结果页。
 
 **icourse 自动确认规范提示**：每节课开始前会弹「关于平台资源使用的规范提示！」，需要勾选「我已阅读」再点「确认」。脚本检测到这个弹窗时自动勾选并确认。只匹配这一种弹窗，签到、互动答题、退出确认等其它弹窗不会被动。
 
